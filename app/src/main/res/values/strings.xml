@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">cyclear</string>
+    <string name="title_activity_green_space">Greenspace</string>
+    <string name="TestText">Hi</string>
+    <string name="gps_service_not_enabled">Please enable GPS</string>
+    <string name="airplane_enabled">Please disable Airplane mode</string>
+    <string name="open_airplane_settings">Open settings</string>
+    <string name="cancel">Cancel</string>
+    <string name="open_location_settings">Open location settings</string>
+</resources>
