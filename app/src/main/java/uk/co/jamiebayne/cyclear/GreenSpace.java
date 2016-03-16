@@ -56,13 +56,15 @@ public class GreenSpace extends FragmentActivity
     private static final float ZOOM_LEVEL = 9.25f;
     private static final float MY_ZOOM_LEVEL = 16f;
     private static final LatLng LONDON = new LatLng(51.5072, -0.110);
+    private static final float LOCAL_RANGE = 8000; // 8km
 
     private LocationManager mLm;
     private GoogleMap mMap;
-    private KmlLayer mLayer;
+    private KmlLayer mKmlLayer;
     private Location mLocation;
     private Marker mCurrentSuggestionMarker;
     private ArrayList<Park> mParks;
+    private ArrayList<Park> mNearbyParks;
     /*
     private Circle mLocationMarker;
     private Circle mAccuracyMarker;
@@ -77,7 +79,6 @@ public class GreenSpace extends FragmentActivity
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
-
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -270,32 +271,49 @@ public class GreenSpace extends FragmentActivity
         mMap.moveCamera(CameraUpdateFactory.newLatLng(LONDON));
 
         mMap.setMyLocationEnabled(true);
-        //mMap.setOnMyLocationButtonClickListener(this);
-
-
-        mMap.addMarker(new MarkerOptions()
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.powered_by_google_light))
-                .position(LONDON)
-                .flat(true)
-                .rotation(0));
-
-        CameraPosition cameraPosition = CameraPosition.builder()
-                .target(LONDON)
-                .zoom(ZOOM_LEVEL)
-                .build();
-
-        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        //mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 2000, null);
 
         try {
-            mLayer = new KmlLayer(mMap, R.raw.parks_new, this);
-            mLayer.addLayerToMap();
+            mKmlLayer = new KmlLayer(mMap, R.raw.parks_new, this);
+            mKmlLayer.addLayerToMap();
         } catch (XmlPullParserException ex) {
             System.out.println(ex.toString());
             throw new RuntimeException("Error parsing kml file");
         }
 
+        createParks();
+        updateNearbyParkList();
+
+
         findNearestGreenspace();
+
+        /*
+        mMap.addMarker(new MarkerOptions()
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.powered_by_google_light))
+                .position(LONDON)
+                .flat(true)
+                .rotation(0));
+                */
+    }
+
+    private void createParks()
+    {
+        mParks = new ArrayList<Park>();
+        KmlContainer container =
+                mKmlLayer.getContainers().iterator().next().getContainers().iterator().next();
+        for (KmlPlacemark pm : container.getPlacemarks()) {
+            mParks.add(new Park(pm));
+        }
+    }
+
+    private void updateNearbyParkList()
+    {
+        mNearbyParks = new ArrayList<Park>();
+        for (Park p : mParks) {
+            Location loc = U.latLngToLocation(p.getCentroid());
+            if (mLocation.distanceTo(loc) < LOCAL_RANGE) {
+                mNearbyParks.add(p);
+            }
+        }
     }
 
     private void findNearestGreenspace()
@@ -308,7 +326,7 @@ public class GreenSpace extends FragmentActivity
 
         //lastLocation.distanceTo()
         System.out.println("HIHIHIHI");
-        Iterable<KmlContainer> it = mLayer.getContainers().iterator().next().getContainers();
+        Iterable<KmlContainer> it = mKmlLayer.getContainers().iterator().next().getContainers();
 
         double minDistance = Double.POSITIVE_INFINITY;
         Park minPark = null;
@@ -318,6 +336,8 @@ public class GreenSpace extends FragmentActivity
                 System.out.println("Doing Placemark: ");
                 Park p = new Park(pm);
                 double distance = mLocation.distanceTo(U.latLngToLocation(p.getCentroid()));
+
+                if (distance < 8000)
 
                 if (distance < minDistance) {
                     System.out.println("Found a park");
