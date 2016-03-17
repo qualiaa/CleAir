@@ -65,6 +65,7 @@ public class GreenSpace extends FragmentActivity
     private Marker mCurrentSuggestionMarker;
     private ArrayList<Park> mParks;
     private ArrayList<Park> mNearbyParks;
+    private boolean mParksReady = false;
     /*
     private Circle mLocationMarker;
     private Circle mAccuracyMarker;
@@ -106,7 +107,7 @@ public class GreenSpace extends FragmentActivity
 
     @Override
     public void onLocationChanged(Location l) {
-        if (mParks != null && mLocation != null) {
+        if (mParksReady && mLocation != null) {
             findNearestGreenspace();
         }
     }
@@ -287,10 +288,13 @@ public class GreenSpace extends FragmentActivity
         }
 
         createParks();
-        updateNearbyParkList();
+        //updateNearbyParkList();
 
 
+        /*
         findNearestGreenspace();
+        */
+
 
         /*
         mMap.addMarker(new MarkerOptions()
@@ -310,6 +314,7 @@ public class GreenSpace extends FragmentActivity
         for (KmlPlacemark pm : container.getPlacemarks()) {
             mParks.add(new Park(pm));
         }
+        mParksReady = true;
     }
 
     private void updateNearbyParkList()
@@ -364,7 +369,7 @@ public class GreenSpace extends FragmentActivity
             try {
                 setup();
                 fail = false;
-            } catch (Exception ex) { System.out.println(ex.toString()); }
+            } catch (IOException ex) { System.out.println(ex.toString()); }
         }
 
         if (fail) {
