@@ -19,8 +19,12 @@ public class Park {
         double lat = Double.parseDouble(data.getProperty("lat"));
         double lng = Double.parseDouble(data.getProperty("lon"));
         mCentroid = new LatLng(lat, lng);
+        /*
         KmlPolygon poly = (KmlPolygon)data.getGeometry().getGeometryObject();
+        System.out.println("SDSDSD");
         mPolygon = poly.getOuterBoundaryCoordinates();
+        System.out.println("SDSDSD");
+        */
     }
 
     public LatLng getCentroid() { return mCentroid; }

@@ -297,6 +297,7 @@ public class GreenSpace extends FragmentActivity
 
     private void createParks()
     {
+        System.out.println("Creating parks");
         mParks = new ArrayList<Park>();
         KmlContainer container =
                 mKmlLayer.getContainers().iterator().next().getContainers().iterator().next();
@@ -307,6 +308,7 @@ public class GreenSpace extends FragmentActivity
 
     private void updateNearbyParkList()
     {
+        System.out.println("Creating nearby parks");
         mNearbyParks = new ArrayList<Park>();
         for (Park p : mParks) {
             Location loc = U.latLngToLocation(p.getCentroid());
