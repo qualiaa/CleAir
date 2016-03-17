@@ -14,7 +14,6 @@ import android.os.Build;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.ContextCompat;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -22,17 +21,11 @@ import android.text.TextUtils;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
-import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
-import com.google.android.gms.maps.LocationSource;
-import com.google.android.gms.maps.LocationSource.OnLocationChangedListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 
 import com.google.android.gms.maps.model.Polygon;
@@ -64,9 +57,10 @@ public class GreenSpace extends FragmentActivity
     private static final float MY_ZOOM_LEVEL = 16f;
     private static final LatLng LONDON = new LatLng(51.5072, -0.110);
     private static final float LOCAL_RANGE = 5000; // 8km
+    private static final int PARK_OUTLINE_COLOUR = 0xffcccccc;
 
     //Jacques' data
-    private AirData processedData;
+    private AirData mProcessedData;
 
     private LocationManager mLm;
     private GoogleMap mMap;
@@ -86,8 +80,8 @@ public class GreenSpace extends FragmentActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Intent i = getIntent();
-        processedData = (AirData)i.getSerializableExtra("AirData");
-        System.out.println(processedData.getData());
+        mProcessedData = (AirData)i.getSerializableExtra("AirData");
+        System.out.println(mProcessedData.getData());
         setContentView(R.layout.activity_green_space);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -369,10 +363,14 @@ public class GreenSpace extends FragmentActivity
 
 
                 // JACQUES: make this colourful
-                int polutionColour = 0xffffffff; //0xaarrggbb, want aa = ff
+                //Made colourful
+                double estimate = mProcessedData.estimate("NO2", p);
+                int pollutionColour = AirData.bandColor(AirData.getBand("NO2", estimate)); //0xffffffff; //0xaarrggbb, want aa = ff
 
                 PolygonOptions polyOpts = new PolygonOptions()
-                            .fillColor(polutionColour);
+                            .strokeColor(PARK_OUTLINE_COLOUR)
+                            .fillColor(pollutionColour)
+                            .clickable(true);
 
                 System.out.println("Adding " + loc.toString());
                 System.out.println("Creating polyopts");
@@ -403,15 +401,21 @@ public class GreenSpace extends FragmentActivity
 
         double minDistance = Double.POSITIVE_INFINITY;
         Park minPark = null;
-        for (Park p : mParks) {
-            double distance = mLocation.distanceTo(U.latLngToLocation(p.getCentroid()));
+        int minBand = 12;
 
-            if (distance < minDistance) {
+
+
+        for (Park p : mNearbyParks) {
+            double distance = mLocation.distanceTo(U.latLngToLocation(p.getCentroid()));
+            int band = AirData.getBand("NO2", mProcessedData.estimate("NO2", p));
+
+            if ((distance < minDistance && band == minBand) || band < minBand) {
                 System.out.println("Found a park");
                 //Test: Estimate NO2 at nearby parks
-                System.out.println("Park " + p.mId + " NO2 est = " + processedData.estimate("NO2", p));
+                System.out.println("Park " + p.mId + " NO2 est = " + mProcessedData.estimate("NO2", p));
                 minDistance = distance;
                 minPark = p;
+                minBand = band;
             }
         }
 

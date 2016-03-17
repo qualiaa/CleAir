@@ -1,5 +1,7 @@
 package uk.co.jamiebayne.cyclear;
 
+import android.graphics.Color;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -31,6 +33,18 @@ public class AirData implements Serializable {
     private boolean dataLoaded = false;
     //Place to store the processed data
     private Map<String, Map<String, Double>> processedData;
+
+    //Turn band index into a colour int
+    public static int bandColor(int band) {
+        switch(band) {
+            case 1:
+                return 0xff00ff00; //Color.GREEN;
+            case 2:
+                return 0xffffff00; //Color.YELLOW;
+            default:
+                return 0xffff0000; //Color.RED;
+        }
+    }
 
     //Returns air quality index for given species and measurement (returns -1 for species without defined bands)
     public static int getBand(String speciesCode, double measurement) {
