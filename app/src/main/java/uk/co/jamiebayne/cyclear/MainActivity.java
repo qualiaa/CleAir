@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -16,7 +17,11 @@ public class MainActivity extends AppCompatActivity {
     protected void passData(AirData newData){
         this.data = newData;
         upToDate = true;
+
+        mainButton.setEnabled(true);
         mainButton.setClickable(true);
+        TextView loadingText = (TextView) findViewById(R.id.textView);
+        loadingText.setVisibility(View.GONE);
     }
 
     @Override
@@ -25,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mainButton = (Button) findViewById(R.id.button);
         mainButton.setClickable(false);
+        mainButton.setEnabled(false);
         //View
 
         //Jacques' stuff

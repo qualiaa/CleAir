@@ -27,7 +27,10 @@ public class AirData implements Serializable {
     private static final boolean DEBUG = true;
 
     //Hardcoded list of active site codes
-    private final String[] SITES = new String[]{"GN4", "BX2", "WA9", "MY7", "HR1", "LB5", "KC5", "TH2", "BQ5", "TD5", "CD1", "RI1", "GR7", "ME2", "ST3", "HV1", "BQ6", "LW1", "HG1", "BX9", "ME1", "TD0", "CR5", "KT3", "NB1", "CT6", "WM6", "BX0", "WAA", "GN2", "GB0", "BT6", "BG1", "EA6", "GR5", "GR4", "WM0", "HV3", "CT2", "LB6", "KC2", "EN7", "RB4", "WAB", "CT8", "KC3", "EI1", "LW4", "EN5", "GB6", "KC7", "IS6", "CR8", "CD9", "RB7", "TH6", "EN4", "IM1", "LW3", "ST5", "CR9", "GR9", "CT3", "WA7", "MY1", "LH0", "BQ7", "ME7", "HI0", "SK6", "HG4", "HF4", "WM8", "KC4", "EI8", "KT4", "CD3", "RI2", "BG2", "BX1", "BL0", "GR8", "KC1", "EN1", "BT4", "HR2", "HK6", "LB4", "TH4", "WA8", "WA2", "BQ8", "ST6", "ST8", "IS2", "GN0", "LW2", "SK5", "GN3", "CR7", "ST4", "EA8", "CT4", "TH5", "BT5"};
+    public static final String[] SITES = new String[]{"GN4", "BX2", "WA9", "MY7", "HR1", "LB5", "KC5", "TH2", "BQ5", "TD5", "CD1", "RI1", "GR7", "ME2", "ST3", "HV1", "BQ6", "LW1", "HG1", "BX9", "ME1", "TD0", "CR5", "KT3", "NB1", "CT6", "WM6", "BX0", "WAA", "GN2", "GB0", "BT6", "BG1", "EA6", "GR5", "GR4", "WM0", "HV3", "CT2", "LB6", "KC2", "EN7", "RB4", "WAB", "CT8", "KC3", "EI1", "LW4", "EN5", "GB6", "KC7", "IS6", "CR8", "CD9", "RB7", "TH6", "EN4", "IM1", "LW3", "ST5", "CR9", "GR9", "CT3", "WA7", "MY1", "LH0", "BQ7", "ME7", "HI0", "SK6", "HG4", "HF4", "WM8", "KC4", "EI8", "KT4", "CD3", "RI2", "BG2", "BX1", "BL0", "GR8", "KC1", "EN1", "BT4", "HR2", "HK6", "LB4", "TH4", "WA8", "WA2", "BQ8", "ST6", "ST8", "IS2", "GN0", "LW2", "SK5", "GN3", "CR7", "ST4", "EA8", "CT4", "TH5", "BT5"};
+
+    //Hardcoded list of species codes
+    public static final String[] SPECIES = new String[]{"NO2", "SO2", "O3", "PM25", "PM10", "FINE"};
 
     //Flag that data has been loaded
     private boolean dataLoaded = false;
@@ -51,9 +54,9 @@ public class AirData implements Serializable {
         int band = -1;
         switch(speciesCode) {
             case "NO2":
-                if (measurement <= 67) {
+                if (measurement <= 50) {
                     band = 1;
-                } else if (measurement <= 134) {
+                } else if (measurement <= 60) {
                     band = 2;
                 } else if (measurement <= 200) {
                     band = 3;

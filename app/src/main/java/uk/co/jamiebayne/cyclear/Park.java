@@ -1,17 +1,14 @@
 package uk.co.jamiebayne.cyclear;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.google.maps.android.kml.KmlGeometry;
 import com.google.maps.android.kml.KmlPlacemark;
 import com.google.maps.android.kml.KmlPolygon;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Park {
-    int mId;
+    private int mId;
     private LatLng mCentroid;
     private ArrayList<LatLng> mPolygon;
     private Map<String, Double> distToSites;
@@ -27,6 +24,8 @@ public class Park {
         mPolygon = poly.getOuterBoundaryCoordinates();
     }
 
+    public int getID() { return mId; }
+
     protected double getDistance(String siteCode) {
         return distToSites.get(siteCode);
     }
@@ -34,4 +33,5 @@ public class Park {
     public LatLng getCentroid() { return mCentroid; }
 
     public ArrayList<LatLng> getPolygon() { return mPolygon; }
+
 }

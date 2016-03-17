@@ -40,6 +40,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -50,13 +51,14 @@ public class GreenSpace extends FragmentActivity
             OnMapReadyCallback,
             OnMapClickListener,
             LocationListener,
+            GoogleMap.OnPolygonClickListener,
             //OnMyLocationButtonClickListener,
             ActivityCompat.OnRequestPermissionsResultCallback
 {
     private static final float ZOOM_LEVEL = 9.25f;
     private static final float MY_ZOOM_LEVEL = 16f;
     private static final LatLng LONDON = new LatLng(51.5072, -0.110);
-    private static final float LOCAL_RANGE = 5000; // 8km
+    private static final float LOCAL_RANGE = 20000; // 8km
     private static final int PARK_OUTLINE_COLOUR = 0xffcccccc;
 
     //Jacques' data
@@ -66,10 +68,11 @@ public class GreenSpace extends FragmentActivity
     private GoogleMap mMap;
     private KmlLayer mKmlLayer;
     private Location mLocation;
+    private Marker mCurrentSelectedMarker;
     private Marker mCurrentSuggestionMarker;
     private ArrayList<Park> mParks;
-    private ArrayList<Park> mNearbyParks;
-    private ArrayList<Polygon> mNearbyParkPolys;
+    private HashMap<Integer, Park> mNearbyParks;
+    private HashMap<Integer, Polygon> mNearbyParkPolys;
     private boolean mParksReady = false;
     /*
     private Circle mLocationMarker;
@@ -286,10 +289,11 @@ public class GreenSpace extends FragmentActivity
         mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
         mMap.setMyLocationEnabled(true);
+        mMap.setOnPolygonClickListener(this);
 
         try {
             mKmlLayer = new KmlLayer(mMap, R.raw.parks_new, this);
-            mKmlLayer.addLayerToMap();
+            //mKmlLayer.addLayerToMap();
         } catch (XmlPullParserException ex) {
             System.out.println(ex.toString());
             throw new RuntimeException("Error parsing kml file");
@@ -349,41 +353,28 @@ public class GreenSpace extends FragmentActivity
     {
         System.out.println("Creating nearby parks");
         if (mNearbyParkPolys != null) {
-            for (Polygon poly : mNearbyParkPolys) {
+            for (Polygon poly : mNearbyParkPolys.values()) {
                 poly.remove();
             }
         }
-        mNearbyParks = new ArrayList<Park>();
-        mNearbyParkPolys = new ArrayList<Polygon>();
+        mNearbyParks = new HashMap<Integer, Park>();
+        mNearbyParkPolys = new HashMap<Integer, Polygon>();
         for (Park p : mParks) {
             Location loc = U.latLngToLocation(p.getCentroid());
             if (mLocation.distanceTo(loc) < LOCAL_RANGE) {
-                mNearbyParks.add(p);
-                ArrayList<LatLng> points = p.getPolygon();
+                mNearbyParks.put(p.getID(), p);
 
-
-                // JACQUES: make this colourful
-                //Made colourful
                 double estimate = mProcessedData.estimate("NO2", p);
                 int pollutionColour = AirData.bandColor(AirData.getBand("NO2", estimate)); //0xffffffff; //0xaarrggbb, want aa = ff
 
                 PolygonOptions polyOpts = new PolygonOptions()
                             .strokeColor(PARK_OUTLINE_COLOUR)
                             .fillColor(pollutionColour)
+                            .addAll(p.getPolygon())
                             .clickable(true);
 
-                System.out.println("Adding " + loc.toString());
-                System.out.println("Creating polyopts");
-
-                Iterator<LatLng> it = p.getPolygon().iterator();
-                while (it.hasNext()) {
-                    LatLng l = it.next();
-                    System.out.println("adding ll");
-                    polyOpts.add(l);
-                }
-                System.out.println("adding to map");
                 Polygon poly = mMap.addPolygon(polyOpts);
-                mNearbyParkPolys.add(poly);
+                mNearbyParkPolys.put(new Integer(p.getID()), poly);
             }
         }
     }
@@ -405,14 +396,14 @@ public class GreenSpace extends FragmentActivity
 
 
 
-        for (Park p : mNearbyParks) {
+        for (Park p : mNearbyParks.values()) {
             double distance = mLocation.distanceTo(U.latLngToLocation(p.getCentroid()));
             int band = AirData.getBand("NO2", mProcessedData.estimate("NO2", p));
 
             if ((distance < minDistance && band == minBand) || band < minBand) {
                 System.out.println("Found a park");
                 //Test: Estimate NO2 at nearby parks
-                System.out.println("Park " + p.mId + " NO2 est = " + mProcessedData.estimate("NO2", p));
+                System.out.println("Park " + p.getID() + " NO2 est = " + mProcessedData.estimate("NO2", p));
                 minDistance = distance;
                 minPark = p;
                 minBand = band;
@@ -421,8 +412,13 @@ public class GreenSpace extends FragmentActivity
 
         if (minPark != null) {
             System.out.println("Adding marker to park at " + minPark.getCentroid().toString());
-            mMap.addMarker(new MarkerOptions()
-                    .position(minPark.getCentroid()));
+            if (mCurrentSuggestionMarker != null) {
+                mCurrentSuggestionMarker.remove();
+            }
+            mCurrentSuggestionMarker =
+                    mMap.addMarker(new MarkerOptions()
+                        .position(minPark.getCentroid())
+                        .title("Current Suggestion"));
         } else {
             System.out.println("No parks found");
         }
@@ -442,6 +438,36 @@ public class GreenSpace extends FragmentActivity
         if (fail) {
             System.out.println("Returning to home screen");
             startActivity(new Intent(this, MainActivity.class));
+        }
+    }
+
+    @Override
+    public void onPolygonClick(Polygon polygon) {
+        System.out.println("Polygon clicked");
+        for (Map.Entry<Integer, Polygon> e : mNearbyParkPolys.entrySet()) {
+            if (e.getValue().equals(polygon)) {
+                Park p = mNearbyParks.get(e.getKey());
+
+                if (mCurrentSelectedMarker != null) {
+                    mCurrentSelectedMarker.remove();
+                }
+
+                StringBuilder b = new StringBuilder();
+                for (String part : AirData.SPECIES) {
+                    double estimate = mProcessedData.estimate(part, p);
+                    DecimalFormat df = new DecimalFormat("#.0");
+
+                    b.append(part).append(": ").append(df.format(estimate)).append(' ');
+                }
+
+                mCurrentSelectedMarker =
+                        mMap.addMarker(new MarkerOptions()
+                            .position(p.getCentroid())
+                            .snippet(b.toString())
+                            .title("Current Selection (mg / m3)"));
+                mCurrentSelectedMarker.showInfoWindow();
+                break;
+            }
         }
     }
 }
