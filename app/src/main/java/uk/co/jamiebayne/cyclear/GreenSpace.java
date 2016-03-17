@@ -42,8 +42,13 @@ import com.google.maps.android.kml.KmlPlacemark;
 
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GreenSpace extends FragmentActivity
         implements
@@ -57,6 +62,9 @@ public class GreenSpace extends FragmentActivity
     private static final float MY_ZOOM_LEVEL = 16f;
     private static final LatLng LONDON = new LatLng(51.5072, -0.110);
     private static final float LOCAL_RANGE = 8000; // 8km
+
+    //Jacques' data
+    private AirData processedData;
 
     private LocationManager mLm;
     private GoogleMap mMap;
@@ -74,6 +82,9 @@ public class GreenSpace extends FragmentActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Intent i = getIntent();
+        processedData = (AirData)i.getSerializableExtra("AirData");
+        System.out.println(processedData.getData());
         setContentView(R.layout.activity_green_space);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -287,14 +298,34 @@ public class GreenSpace extends FragmentActivity
             throw new RuntimeException("Error parsing kml file");
         }
 
-        createParks();
-        //updateNearbyParkList();
+        //Read in the csv distance matrix
+        Map<Integer, Map<String, Double>> distanceData = new HashMap<Integer, Map<String, Double>>();
+        try {
+            InputStream inputStream = getResources().openRawResource(R.raw.distancematrix);
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream), 1000);
+            String line = bufferedReader.readLine();
+            String[] firstRowData = line.split(",");
+            for (line = bufferedReader.readLine(); line != null; line = bufferedReader.readLine()) {
+                String[] rowData = line.split(",");
+                Map<String, Double> parkData = new HashMap<String, Double>();
+                int parkID = Integer.parseInt(rowData[1]);
+                distanceData.put(parkID, parkData);
+                System.out.println("Reading distances for park: " + parkID);
+                for (int i=1; i<rowData.length; i++) {
+                    parkData.put(firstRowData[i], Double.parseDouble(rowData[i]));
+                }
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //Make the parks and pass them the distance data
+        createParks(distanceData);
+        updateNearbyParkList();
 
 
-        /*
         findNearestGreenspace();
-        */
-
 
         /*
         mMap.addMarker(new MarkerOptions()
@@ -305,14 +336,14 @@ public class GreenSpace extends FragmentActivity
                 */
     }
 
-    private void createParks()
+    private void createParks(Map<Integer, Map<String, Double>> distanceData)
     {
         System.out.println("Creating parks");
         mParks = new ArrayList<Park>();
         KmlContainer container =
                 mKmlLayer.getContainers().iterator().next().getContainers().iterator().next();
         for (KmlPlacemark pm : container.getPlacemarks()) {
-            mParks.add(new Park(pm));
+            mParks.add(new Park(pm, distanceData));
         }
         mParksReady = true;
     }
@@ -347,6 +378,8 @@ public class GreenSpace extends FragmentActivity
 
             if (distance < minDistance) {
                 System.out.println("Found a park");
+                //Test: Estimate NO2 at nearby parks
+                System.out.println("Park " + p.mId + " NO2 est = " + processedData.estimate("NO2", p));
                 minDistance = distance;
                 minPark = p;
             }
