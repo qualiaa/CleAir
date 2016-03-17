@@ -106,7 +106,9 @@ public class GreenSpace extends FragmentActivity
 
     @Override
     public void onLocationChanged(Location l) {
-        findNearestGreenspace();
+        if (mParks != null && mLocation != null) {
+            findNearestGreenspace();
+        }
     }
 
     @Override
@@ -268,7 +270,11 @@ public class GreenSpace extends FragmentActivity
         mLm.requestLocationUpdates(60000, 100, criteria, this, null);
 
         mLocation = getLastBestLocation();
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(LONDON));
+        CameraPosition cameraPosition = CameraPosition.builder()
+                .target(LONDON)
+                .zoom(ZOOM_LEVEL)
+                .build();
+        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
         mMap.setMyLocationEnabled(true);
 
@@ -328,24 +334,16 @@ public class GreenSpace extends FragmentActivity
 
         //lastLocation.distanceTo()
         System.out.println("HIHIHIHI");
-        Iterable<KmlContainer> it = mKmlLayer.getContainers().iterator().next().getContainers();
 
         double minDistance = Double.POSITIVE_INFINITY;
         Park minPark = null;
-        for (KmlContainer cont : it) {
-            System.out.println("Doing container");
-            for (KmlPlacemark pm : cont.getPlacemarks()) {
-                System.out.println("Doing Placemark: ");
-                Park p = new Park(pm);
-                double distance = mLocation.distanceTo(U.latLngToLocation(p.getCentroid()));
+        for (Park p : mParks) {
+            double distance = mLocation.distanceTo(U.latLngToLocation(p.getCentroid()));
 
-                if (distance < 8000)
-
-                if (distance < minDistance) {
-                    System.out.println("Found a park");
-                    minDistance = distance;
-                    minPark = p;
-                }
+            if (distance < minDistance) {
+                System.out.println("Found a park");
+                minDistance = distance;
+                minPark = p;
             }
         }
 
@@ -370,7 +368,7 @@ public class GreenSpace extends FragmentActivity
         }
 
         if (fail) {
-            System.out.println("Insufficient permissions");
+            System.out.println("Returning to home screen");
             startActivity(new Intent(this, MainActivity.class));
         }
     }

@@ -1,0 +1,56 @@
+{
+  "project_info": {
+    "project_id": "utopian-spring-125111",
+    "project_number": "84219574667",
+    "name": "My Project"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:84219574667:android:e3551afcf50743fd",
+        "client_id": "android:uk.co.jamiebayne.cyclear",
+        "client_type": 1,
+        "android_client_info": {
+          "package_name": "uk.co.jamiebayne.cyclear",
+          "certificate_hash": []
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "84219574667-bh7rm0d9ia7kuvclsgli011a77pq31vp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "uk.co.jamiebayne.cyclear",
+            "certificate_hash": "127D2746A54F083CE0A8DEB97506F91A95305D2E"
+          }
+        },
+        {
+          "client_id": "84219574667-nvjftj8h67fli1b6t0d9ssalsl2jo36g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "cloud_messaging_service": {
+          "status": 1,
+          "apns_config": []
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "google_signin_service": {
+          "status": 2
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "client_info": [],
+  "ARTIFACT_VERSION": "1"
+}
