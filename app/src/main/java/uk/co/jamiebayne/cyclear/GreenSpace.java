@@ -36,6 +36,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 
 import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.maps.android.kml.KmlContainer;
 import com.google.maps.android.kml.KmlLayer;
 import com.google.maps.android.kml.KmlPlacemark;
@@ -44,6 +45,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class GreenSpace extends FragmentActivity
         implements
@@ -56,7 +58,7 @@ public class GreenSpace extends FragmentActivity
     private static final float ZOOM_LEVEL = 9.25f;
     private static final float MY_ZOOM_LEVEL = 16f;
     private static final LatLng LONDON = new LatLng(51.5072, -0.110);
-    private static final float LOCAL_RANGE = 8000; // 8km
+    private static final float LOCAL_RANGE = 5000; // 8km
 
     private LocationManager mLm;
     private GoogleMap mMap;
@@ -65,6 +67,7 @@ public class GreenSpace extends FragmentActivity
     private Marker mCurrentSuggestionMarker;
     private ArrayList<Park> mParks;
     private ArrayList<Park> mNearbyParks;
+    private ArrayList<Polygon> mNearbyParkPolys;
     private boolean mParksReady = false;
     /*
     private Circle mLocationMarker;
@@ -288,7 +291,7 @@ public class GreenSpace extends FragmentActivity
         }
 
         createParks();
-        //updateNearbyParkList();
+        updateNearbyParkList();
 
 
         /*
@@ -320,11 +323,38 @@ public class GreenSpace extends FragmentActivity
     private void updateNearbyParkList()
     {
         System.out.println("Creating nearby parks");
+        if (mNearbyParkPolys != null) {
+            for (Polygon poly : mNearbyParkPolys) {
+                poly.remove();
+            }
+        }
         mNearbyParks = new ArrayList<Park>();
+        mNearbyParkPolys = new ArrayList<Polygon>();
         for (Park p : mParks) {
             Location loc = U.latLngToLocation(p.getCentroid());
             if (mLocation.distanceTo(loc) < LOCAL_RANGE) {
                 mNearbyParks.add(p);
+                ArrayList<LatLng> points = p.getPolygon();
+
+
+                // JACQUES: make this colourful
+                int polutionColour = 0xffffffff; //0xaarrggbb, want aa = ff
+
+                PolygonOptions polyOpts = new PolygonOptions()
+                            .fillColor(polutionColour);
+
+                System.out.println("Adding " + loc.toString());
+                System.out.println("Creating polyopts");
+
+                Iterator<LatLng> it = p.getPolygon().iterator();
+                while (it.hasNext()) {
+                    LatLng l = it.next();
+                    System.out.println("adding ll");
+                    polyOpts.add(l);
+                }
+                System.out.println("adding to map");
+                Polygon poly = mMap.addPolygon(polyOpts);
+                mNearbyParkPolys.add(poly);
             }
         }
     }
