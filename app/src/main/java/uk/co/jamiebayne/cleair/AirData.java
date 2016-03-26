@@ -1,6 +1,4 @@
-package uk.co.jamiebayne.cyclear;
-
-import android.graphics.Color;
+package uk.co.jamiebayne.cleair;
 
 import org.json.JSONArray;
 import org.json.JSONException;

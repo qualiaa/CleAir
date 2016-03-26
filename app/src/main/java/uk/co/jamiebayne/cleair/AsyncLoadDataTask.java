@@ -1,4 +1,4 @@
-package uk.co.jamiebayne.cyclear;
+package uk.co.jamiebayne.cleair;
 
 import android.os.AsyncTask;
 

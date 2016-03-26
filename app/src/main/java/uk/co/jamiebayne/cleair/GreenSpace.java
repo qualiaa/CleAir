@@ -1,4 +1,4 @@
-package uk.co.jamiebayne.cyclear;
+package uk.co.jamiebayne.cleair;
 
 import android.Manifest;
 import android.annotation.TargetApi;
@@ -44,7 +44,6 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Iterator;
 
 public class GreenSpace extends FragmentActivity
         implements

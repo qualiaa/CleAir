@@ -1,4 +1,4 @@
-package uk.co.jamiebayne.cyclear;
+package uk.co.jamiebayne.cleair;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;

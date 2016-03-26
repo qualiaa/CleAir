@@ -1,6 +1,5 @@
-package uk.co.jamiebayne.cyclear;
+package uk.co.jamiebayne.cleair;
 
-import android.content.Context;
 import android.location.Location;
 import android.location.LocationManager;
 
